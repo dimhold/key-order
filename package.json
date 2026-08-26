@@ -1,0 +1,15 @@
+{
+  "name": "key-order",
+  "version": "1.0.0",
+  "description": "What a random primary key costs on Postgres: same type, same width, same data, only the arrival order differs. 49.8% leaf fragmentation against 0%.",
+  "license": "MIT",
+  "author": "Dmitriy Semenkevich <dimhold@gmail.com>",
+  "type": "module",
+  "private": false,
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "pass1": "node run.mjs --rows 3000000 --batch 100000 --pass 1 --out out",
+    "pass2": "node run.mjs --rows 3000000 --batch 100000 --pass 2 --out out",
+    "pass3": "node run.mjs --rows 20000000 --batch 250000 --pass 3 --out out"
+  }
+}
