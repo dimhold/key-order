@@ -24,6 +24,17 @@ inserts take about twice as long, and the gap grows as the table fills.
 Full numbers, including a twenty-million-row run where the index no longer fits
 in `shared_buffers`, are in `RESULTS.md`.
 
+## And the part that costs nothing
+
+Reads. A 762 MB index at 49.8% fragmentation answers a point lookup in 236 us
+cold; a 602 MB index at zero fragmentation answers it in 236 us cold. Same
+blocks read, same latency. Fragmentation is paid on the write path and on disk,
+not on a lookup by key — a B-tree descends a fixed number of levels either way.
+
+That measurement exists because the first attempt at it was wrong and was
+published as a debt rather than quietly dropped. `read.mjs` is the debt paid,
+against the same tables.
+
 ## What is deliberately not done
 
 `fsync` stays on. Turning it off removes exactly the cost under discussion.

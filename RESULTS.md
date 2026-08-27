@@ -1,4 +1,4 @@
-# Results — 2026-08-26
+# Results — 2026-08-27
 
 Postgres 16.14, `fsync=on`, `synchronous_commit=on`, `full_page_writes=on`,
 `shared_buffers=256MB`, `max_wal_size=4GB`, `checkpoint_timeout=30min`,
@@ -58,19 +58,48 @@ pages touched per insert, hence more full-page images in WAL. Ordered keys
 always land at the right edge of the tree, so nothing splits in the middle and
 nothing fragments.
 
-## What did not come out as expected
+## Reads: the fragmentation costs nothing
 
-The point-lookup measurement is **not usable as written** and no claim is built
-on it. The probe joins 2,000 known keys against the table in one query, so
-Postgres is free to plan it as a hash or merge join over a bulk scan rather than
-as 2,000 independent index lookups. The numbers it produced (411 ms for R,
-526 ms for T, 544 ms for B at twenty million rows) point the wrong way for the
-fragmented index, which is itself a sign the probe measures something other
-than what its name says.
+The first attempt at a read measurement was wrong and was published as a debt
+rather than a number. It joined 2,000 known keys against the table in one query,
+so Postgres was free to plan it as a bulk scan rather than as 2,000 independent
+index lookups. That run is still in the artifact, flagged.
 
-They are left in the artifact rather than deleted, and flagged here. A real read
-measurement needs individual lookups with a cold cache, and that is a separate
-run.
+`read.mjs` is that debt paid, against **the same twenty-million-row tables**, so
+the numbers sit directly beside the write numbers above. Every key is looked up
+by its own query inside plpgsql, each one timed; the keys are materialised
+before the timed section; the server is restarted so `shared_buffers` is empty,
+a cold series runs, then a warm series over the same keys. Buffer reads are
+counted alongside the clock, because a cache hit and a disk read differ by two
+orders of magnitude and must not be averaged together.
+
+5,000 lookups per strategy, two passes in opposite order:
+
+| | cold p50 | cold p90 | cold p99 | warm p50 | index blocks read | index size | leaf fragmentation |
+|---|---|---|---|---|---|---|---|
+| **R** random uuid | 236 / 254 us | 427 / 462 | 611 / 700 | 6 / 7 us | 5 340 | 762 MB | **49.8%** |
+| **T** uuid v7 | 236 / 247 us | 429 / 350 | 1193 / 556 | 5 / 5 us | 5 379 | 602 MB | 0% |
+| **B** bigint TSID | 242 / 223 us | 415 / 313 | 563 / 527 | 5 / 5 us | 5 193 | 428 MB | 0% |
+
+**There is no difference.** A 762 MB index at 49.8% leaf fragmentation answers a
+point lookup as fast as a 428 MB index at zero fragmentation, and it reads
+essentially the same number of blocks to do it — 1.07 index blocks per lookup
+against 1.04.
+
+That is not a null result from a weak probe. It is what a B-tree does: a lookup
+by key descends a fixed number of levels, and fragmentation changes how leaves
+are packed and ordered, not how deep the tree is. Density and ordering pay off
+in range scans and in write path page splits, which is exactly where the write
+numbers above show a 2.8x gap.
+
+So the honest version of the claim is narrower than the usual advice: **a random
+primary key costs you on write, on WAL and on disk, and costs you nothing on a
+point read.** Anyone extending the write result to reads is guessing, and this
+table is the check.
+
+The cold/warm split is worth its own line: 236 us against 5 us, a factor of 47.
+A read benchmark that does not say which of the two it measured has not said
+anything.
 
 ## Caveats
 
@@ -85,6 +114,10 @@ The random key hides the neighbouring record from anyone who can guess an id.
 That is a real advantage and it is not assessed here at all.
 
 ## Raw data
+
+`out/reads-pass1.ndjson`, `pass2` — one JSON line per strategy, with cold and
+warm percentiles, per-phase buffer deltas and the index statistics they were
+taken against.
 
 `out/measurements-pass1.ndjson`, `pass2`, `pass3` — one JSON line per strategy,
 carrying every batch timing, every WAL delta, the `pgstatindex` output, the
