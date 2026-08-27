@@ -1,5 +1,7 @@
 # What a random primary key costs on Postgres — an independent replication
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.22128828.svg)](https://doi.org/10.5281/zenodo.22128828)
+
 This is not a new finding. The UUIDv4-against-UUIDv7 result on Postgres is
 published, and this run reproduces it on different hardware, at a different
 scale, with a harness written from the criteria rather than from anyone's code.
