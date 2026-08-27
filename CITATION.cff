@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite it as below."
+title: "key-order"
+type: software
+authors:
+  - family-names: Semenkevich
+    given-names: Dmitriy
+    orcid: "https://orcid.org/0009-0009-3013-4978"
+version: "1.0.0"
+date-released: "2026-08-27"
+license: MIT
+repository-code: "https://github.com/dimhold/key-order"
+abstract: "An independent replication of the UUIDv4 against UUIDv7 result on Postgres, at 20M rows: 2.8x on insert, 49.8% leaf fragmentation against 0%, and no difference at all on point reads."
+keywords:
+  - "PostgreSQL"
+  - "UUID"
+  - "database indexes"
+  - "replication study"
+  - "benchmarking"
