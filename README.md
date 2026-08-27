@@ -1,4 +1,17 @@
-# What a random primary key costs on Postgres
+# What a random primary key costs on Postgres — an independent replication
+
+This is not a new finding. The UUIDv4-against-UUIDv7 result on Postgres is
+published, and this run reproduces it on different hardware, at a different
+scale, with a harness written from the criteria rather than from anyone's code.
+The prior work and what is specific to this run are listed at the bottom, with
+links.
+
+**Replication is the point.** The published numbers come from single runs
+reported as prose. This one fixes the disproof threshold before counting,
+alternates the order of the strategies between passes, generates keys
+deterministically so a rerun produces the same keys, separates cold reads from
+warm ones, and ships every batch timing and buffer counter as machine-readable
+data. Everything below can be recomputed from `out/`.
 
 Three strategies, the same rows, the same machine. The only thing that changes
 between the first two is whether the keys arrive in order.
