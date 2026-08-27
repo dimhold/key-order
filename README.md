@@ -80,3 +80,39 @@ the counting rules, the run conditions and — written in advance — what resul
 would have made this not worth publishing: **under 1.5x on all three metrics.**
 Corrections are appended to it with dates, never edited in place. Two are
 already there, and both were written before the numbers they affect.
+
+## Prior work, and what is actually new here
+
+This section was written **after** the measurement, on 2026-08-27, which is the
+wrong order and is recorded as such. It is here because a repository that lets a
+reader believe it is first, when it is not, is worth less than one that hands
+over the map.
+
+The UUIDv4-against-UUIDv7 question on Postgres is **well covered**, and the
+central finding here has been published before:
+
+- [credativ, *A deeper look at old UUIDv4 vs new UUIDv7 in PostgreSQL 18*](https://www.credativ.de/en/blog/postgresql-en/a-deeper-look-at-old-uuidv4-vs-new-uuidv7-in-postgresql-18/)
+  reports a 26–27% smaller v7 index, fewer leaf pages, higher average leaf
+  density, and v4 leaf pages "completely fragmented". That is this repository's
+  headline, arrived at independently and published earlier.
+- [*Benchmarking Random (v4) and Time-based (v7) UUIDs*](https://dev.to/umangsinha12/postgresql-uuid-performance-benchmarking-random-v4-and-time-based-v7-uuids-n9b)
+  reports v7 inserting more than 5x faster at 100 million rows, and also reports
+  **point-lookup latency as similar between the two** — the null result in
+  `RESULTS.md` is likewise not new.
+- [equenum/postgre_uuid_performance](https://github.com/equenum/postgre_uuid_performance)
+  is an existing public harness for the same comparison.
+
+**What is left that is ours** is execution, not discovery:
+
+- keys are generated deterministically from the row number rather than by
+  `gen_random_uuid()`, so a rerun produces the same keys and the key generator's
+  CPU cost stays out of the timed section;
+- buffer accounting (`idx_blks_read` against `idx_blks_hit`) alongside the
+  clock, so a cache hit and a disk read are never averaged together;
+- the cold series and the warm series are reported separately — a factor of 47
+  apart — instead of a single number that hides which one was measured;
+- strategy order alternates between passes, and the disproof threshold was
+  written before counting.
+
+If you want the finding, the links above have it. If you want a harness you can
+rerun and audit, that is what this is.

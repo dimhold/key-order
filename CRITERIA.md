@@ -131,3 +131,25 @@ the backend and, on the machine it first ran on, filled the disk. The source
 table is now filled in one-million-row chunks inside a `DO` block. This changes
 nothing about what is measured — `src` is not part of any timed section — and is
 recorded because the first attempt at 20M rows produced no data at all.
+
+---
+
+## Addendum 2026-08-27: who has already done this
+
+**Written after the run, which is the wrong order**, and recorded as an addendum
+for that reason. From 2026-08-27 this section is mandatory in every
+measurement's criteria and is written *before* the first number, next to the
+disproof condition.
+
+The comparison is well covered and the headline finding was published before
+this run: see the Prior work section in `README.md` for links. The insert gap,
+the index size gap, the leaf-density gap and the point-lookup null result all
+have prior published counterparts.
+
+What remains specific to this run is method rather than discovery:
+deterministic keys, buffer accounting, an explicit cold/warm split, alternating
+strategy order, and a pre-registered disproof threshold.
+
+Had this section existed before the run, the measurement would still have been
+worth doing — as a reproducible harness — but it would have been framed as
+confirmation from the start rather than as a finding.
