@@ -7,6 +7,7 @@ authors:
     given-names: Dmitriy
     orcid: "https://orcid.org/0009-0009-3013-4978"
 version: "1.0.0"
+doi: "10.5281/zenodo.22128828"
 date-released: "2026-08-27"
 license: MIT
 repository-code: "https://github.com/dimhold/key-order"
